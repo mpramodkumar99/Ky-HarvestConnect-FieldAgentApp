@@ -1,4 +1,5 @@
-import { Animated, Modal, Pressable, StyleSheet, Text, View, useRef, useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import { Animated, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useAppColors, type AppColors } from '@/hooks/use-app-colors';
 import type { Order } from '@/services/order-api';
 
