@@ -1,83 +1,86 @@
+import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Tabs, TabList, TabSlot, TabTrigger } from 'expo-router/ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useDelivery } from '@/context/delivery-context';
 import { useLanguage } from '@/context/language-context';
+import DashboardScreen   from '@/app/dashboard';
+import DeliveriesScreen  from '@/app/deliveries';
+import StoresScreen      from '@/app/stores';
+import ReportsScreen     from '@/app/reports';
+import ProfileScreen     from '@/app/profile';
 
 const PRIMARY = '#2E7D32';
-const ACCENT  = '#F4A300';
 
-interface TabButtonProps {
-  children: React.ReactNode;
-  icon:     string;
-  badge?:   number;
-  isFocused?: boolean;
-}
+type TabId = 'dashboard' | 'deliveries' | 'stores' | 'reports' | 'profile';
 
-function TabButton({ children, icon, badge, isFocused = false, ...rest }: TabButtonProps & Record<string, unknown>) {
-  const c = useAppColors();
-  return (
-    <Pressable
-      {...rest}
-      style={[
-        tabS.btn,
-        isFocused && { backgroundColor: PRIMARY + '12' },
-      ]}>
-      <View style={tabS.iconWrap}>
-        <Text style={[tabS.icon, isFocused && tabS.iconActive]}>{icon}</Text>
-        {!!badge && badge > 0 && (
-          <View style={tabS.badge}>
-            <Text style={tabS.badgeTxt}>{badge > 9 ? '9+' : badge}</Text>
-          </View>
-        )}
-        {isFocused && <View style={[tabS.indicator, { backgroundColor: PRIMARY }]} />}
-      </View>
-      <Text style={[tabS.label, { color: isFocused ? PRIMARY : c.textFaint }]}>{children}</Text>
-    </Pressable>
-  );
-}
+const SCREENS: Record<TabId, React.ComponentType> = {
+  dashboard:  DashboardScreen,
+  deliveries: DeliveriesScreen,
+  stores:     StoresScreen,
+  reports:    ReportsScreen,
+  profile:    ProfileScreen,
+};
 
 export default function AppTabs() {
-  const c       = useAppColors();
-  const insets  = useSafeAreaInsets();
+  const c      = useAppColors();
+  const insets = useSafeAreaInsets();
   const { pendingOrders } = useDelivery();
   const { t }  = useLanguage();
 
+  const [active, setActive] = useState<TabId>('dashboard');
+  const Screen = SCREENS[active];
+
+  const TABS: { id: TabId; icon: string; label: () => string; badge?: number }[] = [
+    { id: 'dashboard',  icon: '📊', label: () => t('tab_dashboard') },
+    { id: 'deliveries', icon: '🛵', label: () => t('tab_deliveries'), badge: pendingOrders.length },
+    { id: 'stores',     icon: '🏪', label: () => t('tab_stores') },
+    { id: 'reports',    icon: '📈', label: () => t('tab_reports') },
+    { id: 'profile',    icon: '🦊', label: () => t('tab_profile') },
+  ];
+
   return (
-    <Tabs>
-      <TabSlot style={{ flex: 1 }} />
-      <TabList asChild>
-        <View style={[tabS.bar, { borderTopColor: c.border, paddingBottom: Math.max(insets.bottom, 8), backgroundColor: c.bg }]}>
-          <TabTrigger name="dashboard" href="/" asChild>
-            <TabButton icon="📊">{t('tab_dashboard')}</TabButton>
-          </TabTrigger>
-          <TabTrigger name="deliveries" href="/deliveries" asChild>
-            <TabButton icon="🛵" badge={pendingOrders.length}>{t('tab_deliveries')}</TabButton>
-          </TabTrigger>
-          <TabTrigger name="stores" href="/stores" asChild>
-            <TabButton icon="🏪">{t('tab_stores')}</TabButton>
-          </TabTrigger>
-          <TabTrigger name="reports" href="/reports" asChild>
-            <TabButton icon="📈">{t('tab_reports')}</TabButton>
-          </TabTrigger>
-          <TabTrigger name="profile" href="/profile" asChild>
-            <TabButton icon="🦊">{t('tab_profile')}</TabButton>
-          </TabTrigger>
-        </View>
-      </TabList>
-    </Tabs>
+    <View style={s.root}>
+      <View style={s.content}>
+        <Screen />
+      </View>
+
+      <View style={[
+        s.bar,
+        { borderTopColor: c.border, backgroundColor: c.bg, paddingBottom: Math.max(insets.bottom, 8) },
+      ]}>
+        {TABS.map(tab => {
+          const focused = active === tab.id;
+          return (
+            <Pressable key={tab.id} style={[s.btn, focused && s.btnActive]} onPress={() => setActive(tab.id)}>
+              <View style={s.iconWrap}>
+                <Text style={s.icon}>{tab.icon}</Text>
+                {!!tab.badge && tab.badge > 0 && (
+                  <View style={s.badge}>
+                    <Text style={s.badgeTxt}>{tab.badge > 9 ? '9+' : tab.badge}</Text>
+                  </View>
+                )}
+                {focused && <View style={s.indicator} />}
+              </View>
+              <Text style={[s.label, { color: focused ? PRIMARY : c.textFaint }]}>{tab.label()}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
   );
 }
 
-const tabS = StyleSheet.create({
-  bar:      { flexDirection: 'row', borderTopWidth: 1, paddingTop: 6 },
-  btn:      { flex: 1, alignItems: 'center', paddingTop: 4, paddingBottom: 2, borderRadius: 10, marginHorizontal: 2 },
-  iconWrap: { position: 'relative', alignItems: 'center', justifyContent: 'center', width: 32, height: 32 },
-  icon:     { fontSize: 20 },
-  iconActive: {},
-  indicator: { position: 'absolute', bottom: -4, width: 28, height: 3, borderRadius: 2 },
-  label:    { fontSize: 10, fontWeight: '500', marginTop: 3 },
+const s = StyleSheet.create({
+  root:    { flex: 1 },
+  content: { flex: 1 },
+  bar:     { flexDirection: 'row', borderTopWidth: 1, paddingTop: 6 },
+  btn:     { flex: 1, alignItems: 'center', paddingTop: 4, paddingBottom: 2, borderRadius: 10, marginHorizontal: 2 },
+  btnActive: { backgroundColor: PRIMARY + '12' },
+  iconWrap:  { position: 'relative', alignItems: 'center', justifyContent: 'center', width: 32, height: 32 },
+  icon:      { fontSize: 20 },
+  indicator: { position: 'absolute', bottom: -4, width: 28, height: 3, borderRadius: 2, backgroundColor: PRIMARY },
+  label:     { fontSize: 10, fontWeight: '500', marginTop: 3 },
   badge: {
     position: 'absolute', top: -4, right: -6,
     minWidth: 16, height: 16, borderRadius: 8,
