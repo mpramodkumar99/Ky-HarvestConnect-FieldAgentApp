@@ -4,3 +4,27 @@
 
 expo-env.d.ts
 # @end expo-cli
+
+# Dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+
+# Generated lockfiles (npm auto-generates this; project uses expo's managed deps)
+package-lock.json
+
+# Native builds
+android/
+ios/
+
+# Environment
+.env
+.env.local
+.env*.local
+
+# Editor
+.DS_Store
+*.log
