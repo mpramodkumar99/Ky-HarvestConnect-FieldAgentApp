@@ -6,6 +6,7 @@ import { useAppColors, type AppColors } from '@/hooks/use-app-colors';
 import { useDelivery } from '@/context/delivery-context';
 import { useLanguage } from '@/context/language-context';
 import { RouteMapModal } from '@/components/route-map-modal';
+import { DeliveryOtpModal } from '@/components/delivery-otp-modal';
 import type { Order } from '@/services/order-api';
 
 const PRIMARY = '#2E7D32';
@@ -141,13 +142,14 @@ export default function DeliveriesScreen() {
   const c = useAppColors();
   const s = makeStyles(c);
   const { t } = useLanguage();
-  const { pendingOrders, activeDelivery, completedToday, loading, refresh, acceptDelivery, markDelivered } = useDelivery();
+  const { pendingOrders, activeDelivery, completedToday, loading, refresh, acceptDelivery, confirmDelivery } = useDelivery();
 
-  const [tab,       setTab]       = useState<Tab>('pending');
-  const [routeOpen, setRouteOpen] = useState(false);
+  const [tab,        setTab]        = useState<Tab>('pending');
+  const [routeOpen,  setRouteOpen]  = useState(false);
   const [routeOrder, setRouteOrder] = useState<Order | null>(null);
-  const [agentLat,  setAgentLat]  = useState(0);
-  const [agentLng,  setAgentLng]  = useState(0);
+  const [agentLat,   setAgentLat]   = useState(0);
+  const [agentLng,   setAgentLng]   = useState(0);
+  const [otpOrderId, setOtpOrderId] = useState<string | null>(null);
 
   async function openRoute(order: Order) {
     try {
@@ -213,7 +215,7 @@ export default function DeliveriesScreen() {
             tab={tab}
             onAccept={acceptDelivery}
             onPickup={() => {}}
-            onDeliver={markDelivered}
+            onDeliver={id => setOtpOrderId(id)}
             onRoute={openRoute}
           />
         ))}
@@ -225,6 +227,15 @@ export default function DeliveriesScreen() {
         agentLat={agentLat}
         agentLng={agentLng}
         onClose={() => setRouteOpen(false)}
+      />
+
+      <DeliveryOtpModal
+        visible={otpOrderId !== null}
+        onConfirm={async otp => {
+          if (otpOrderId) await confirmDelivery(otpOrderId, otp);
+          setOtpOrderId(null);
+        }}
+        onClose={() => setOtpOrderId(null)}
       />
     </View>
   );

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './auth-context';
 import { getAgentProfile, updateAgentStatus, type AgentStatus } from '@/services/agent-api';
+import { registerForPushNotificationsAsync } from '@/utils/notifications';
 
 interface AgentProfileValue {
   agentId:       string;
@@ -38,6 +39,7 @@ export function AgentProfileProvider({ children }: { children: React.ReactNode }
         setStatus(p.status);
       })
       .catch(() => {});
+    registerForPushNotificationsAsync().catch(() => {});
   }, [session]);
 
   const toggleStatus = useCallback(async () => {

@@ -4,6 +4,7 @@ import { AgentProfileProvider } from '@/context/agent-profile-context';
 import { DeliveryProvider } from '@/context/delivery-context';
 import { LanguageProvider } from '@/context/language-context';
 import { ThemePreferenceProvider } from '@/context/theme-context';
+import { TabProvider } from '@/context/tab-context';
 import { ToastProvider } from '@/components/toast-provider';
 
 export default function RootLayout() {
@@ -13,9 +14,11 @@ export default function RootLayout() {
         <AuthProvider>
           <AgentProfileProvider>
             <DeliveryProvider>
-              <ToastProvider>
-                <AppGate />
-              </ToastProvider>
+              <TabProvider>
+                <ToastProvider>
+                  <AppGate />
+                </ToastProvider>
+              </TabProvider>
             </DeliveryProvider>
           </AgentProfileProvider>
         </AuthProvider>

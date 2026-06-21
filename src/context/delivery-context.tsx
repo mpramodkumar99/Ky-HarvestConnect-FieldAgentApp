@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { AppState } from 'react-native';
-import { listOrders, updateOrderStatus, type Order } from '@/services/order-api';
+import { listOrders, updateOrderStatus, verifyDeliveryOtp, type Order } from '@/services/order-api';
 import { useAuth } from '@/context/auth-context';
+import { fireLocalNotification } from '@/utils/notifications';
 
 interface DeliveryContextValue {
   pendingOrders:    Order[];
@@ -13,6 +14,7 @@ interface DeliveryContextValue {
   acceptDelivery:   (orderId: string) => Promise<void>;
   markPickedUp:     (orderId: string) => Promise<void>;
   markDelivered:    (orderId: string) => Promise<void>;
+  confirmDelivery:  (orderId: string, otp: string) => Promise<void>;
   dismissAlert:     () => void;
 }
 
@@ -27,8 +29,9 @@ export function DeliveryProvider({ children }: { children: React.ReactNode }) {
   const [completedToday, setCompletedToday] = useState<Order[]>([]);
   const [newAlertOrder,  setNewAlertOrder]  = useState<Order | null>(null);
   const [loading,        setLoading]        = useState(false);
-  const prevPendingIds = useRef<Set<string>>(new Set());
-  const pollTimer      = useRef<ReturnType<typeof setInterval> | null>(null);
+  const prevPendingIds  = useRef<Set<string>>(new Set());
+  const hasInitialized  = useRef(false);
+  const pollTimer       = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const refresh = useCallback(async () => {
     if (!session) return;
@@ -40,10 +43,19 @@ export function DeliveryProvider({ children }: { children: React.ReactNode }) {
         listOrders({ status: 'delivered',  agentId: session.userId }),
       ]);
 
-      // New orders that weren't in the last poll
       const incomingNew = accepted.filter(o => !prevPendingIds.current.has(o.id));
-      if (incomingNew.length > 0) setNewAlertOrder(incomingNew[0]);
+      if (incomingNew.length > 0) {
+        setNewAlertOrder(incomingNew[0]);
+        if (hasInitialized.current) {
+          fireLocalNotification(
+            '🛵 New delivery ready!',
+            `${incomingNew.length} pickup${incomingNew.length > 1 ? 's' : ''} waiting — tap to view`,
+            { screen: 'deliveries' },
+          );
+        }
+      }
 
+      hasInitialized.current = true;
       prevPendingIds.current = new Set(accepted.map(o => o.id));
       setPendingOrders(accepted);
       setActiveDelivery(dispatched[0] ?? null);
@@ -57,7 +69,6 @@ export function DeliveryProvider({ children }: { children: React.ReactNode }) {
     }
   }, [session]);
 
-  // Start polling when app is foregrounded
   useEffect(() => {
     if (!session) return;
     refresh();
@@ -95,13 +106,18 @@ export function DeliveryProvider({ children }: { children: React.ReactNode }) {
     await refresh();
   }, [session, refresh]);
 
+  const confirmDelivery = useCallback(async (orderId: string, otp: string) => {
+    await verifyDeliveryOtp(orderId, otp);
+    await refresh();
+  }, [refresh]);
+
   const dismissAlert = useCallback(() => setNewAlertOrder(null), []);
 
   return (
     <DeliveryContext.Provider value={{
       pendingOrders, activeDelivery, completedToday,
       newAlertOrder, loading,
-      refresh, acceptDelivery, markPickedUp, markDelivered, dismissAlert,
+      refresh, acceptDelivery, markPickedUp, markDelivered, confirmDelivery, dismissAlert,
     }}>
       {children}
     </DeliveryContext.Provider>

@@ -37,6 +37,7 @@ export interface Order {
   paymentMethod:   'cod' | 'online';
   deliveryAddress: DeliveryAddress;
   agentId?:        string;
+  deliveryOtp?:    string;
   notes?:          string;
   createdAt:       string;
   updatedAt:       string;
@@ -79,5 +80,12 @@ export async function updateOrderStatus(
   return request<Order>(`/v1/orders/${id}`, {
     method: 'PATCH',
     body:   JSON.stringify({ status, ...(agentId ? { agentId } : {}) }),
+  });
+}
+
+export async function verifyDeliveryOtp(id: string, otp: string): Promise<Order> {
+  return request<Order>(`/v1/orders/${id}/verify-delivery`, {
+    method: 'POST',
+    body:   JSON.stringify({ otp }),
   });
 }

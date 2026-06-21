@@ -8,6 +8,7 @@ import { useAuth } from '@/context/auth-context';
 import { useAgentProfile } from '@/context/agent-profile-context';
 import { useLanguage } from '@/context/language-context';
 import { RouteMapModal } from '@/components/route-map-modal';
+import { DeliveryOtpModal } from '@/components/delivery-otp-modal';
 
 const PRIMARY = '#2E7D32';
 const ACCENT  = '#F4A300';
@@ -29,13 +30,14 @@ export default function DashboardScreen() {
   const s = makeStyles(c);
   const { session } = useAuth();
   const { t }       = useLanguage();
-  const { agentId, status, statusLoading, toggleStatus } = useAgentProfile();
-  const { pendingOrders, activeDelivery, completedToday, loading, refresh, markDelivered } = useDelivery();
+  const { agentId, agentName, status, statusLoading, toggleStatus } = useAgentProfile();
+  const { pendingOrders, activeDelivery, completedToday, loading, refresh, confirmDelivery } = useDelivery();
 
-  const [routeOpen,  setRouteOpen]  = useState(false);
-  const [agentLat,   setAgentLat]   = useState(0);
-  const [agentLng,   setAgentLng]   = useState(0);
-  const [locLoading, setLocLoading] = useState(false);
+  const [routeOpen,    setRouteOpen]    = useState(false);
+  const [agentLat,     setAgentLat]     = useState(0);
+  const [agentLng,     setAgentLng]     = useState(0);
+  const [locLoading,   setLocLoading]   = useState(false);
+  const [otpOrderId,   setOtpOrderId]   = useState<string | null>(null);
 
   async function openRoute() {
     setLocLoading(true);
@@ -58,7 +60,7 @@ export default function DashboardScreen() {
       <SafeAreaView edges={['top']} style={{ backgroundColor: PRIMARY }}>
         <View style={s.header}>
           <View>
-            <Text style={s.greeting}>{greetingText()}, Agent 🦊</Text>
+            <Text style={s.greeting}>{greetingText()}, {agentName || 'Agent'} 🦊</Text>
             <Text style={s.agentId}>ID: {agentId !== '—' ? agentId : (session?.userId?.slice(-8).toUpperCase() ?? '—')}</Text>
           </View>
           <Pressable
@@ -138,7 +140,7 @@ export default function DashboardScreen() {
               </Pressable>
               <Pressable
                 style={s.deliveredBtn}
-                onPress={() => markDelivered(activeDelivery.id)}>
+                onPress={() => setOtpOrderId(activeDelivery.id)}>
                 <Text style={s.deliveredBtnTxt}>✓ {t('dash_mark_delivered')}</Text>
               </Pressable>
             </View>
@@ -191,6 +193,15 @@ export default function DashboardScreen() {
         agentLat={agentLat}
         agentLng={agentLng}
         onClose={() => setRouteOpen(false)}
+      />
+
+      <DeliveryOtpModal
+        visible={otpOrderId !== null}
+        onConfirm={async otp => {
+          if (otpOrderId) await confirmDelivery(otpOrderId, otp);
+          setOtpOrderId(null);
+        }}
+        onClose={() => setOtpOrderId(null)}
       />
     </View>
   );
