@@ -29,7 +29,7 @@ export default function DashboardScreen() {
   const s = makeStyles(c);
   const { session } = useAuth();
   const { t }       = useLanguage();
-  const { agentId, status, statusLoading, toggleStatus } = useAgentProfile();
+  const { agentId, agentName, status, statusLoading, toggleStatus } = useAgentProfile();
   const { pendingOrders, activeDelivery, completedToday, loading, refresh, markDelivered } = useDelivery();
 
   const [routeOpen,  setRouteOpen]  = useState(false);
@@ -58,7 +58,7 @@ export default function DashboardScreen() {
       <SafeAreaView edges={['top']} style={{ backgroundColor: PRIMARY }}>
         <View style={s.header}>
           <View>
-            <Text style={s.greeting}>{greetingText()}, Agent 🦊</Text>
+            <Text style={s.greeting}>{greetingText()}, {agentName || 'Agent'} 🦊</Text>
             <Text style={s.agentId}>ID: {agentId !== '—' ? agentId : (session?.userId?.slice(-8).toUpperCase() ?? '—')}</Text>
           </View>
           <Pressable
