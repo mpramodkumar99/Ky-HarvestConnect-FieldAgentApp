@@ -29,11 +29,11 @@ export function normalizePhone(raw: string): string {
 }
 
 export async function requestOtp(phone: string): Promise<void> {
-  await post('/v1/auth/otp/request', { phone });
+  await post('/v1/auth/otp/request', { phone, userType: 'agent' });
 }
 
 export async function verifyOtp(phone: string, code: string): Promise<AuthSession> {
-  return post<AuthSession>('/v1/auth/otp/verify', { phone, code });
+  return post<AuthSession>('/v1/auth/otp/verify', { phone, code, userType: 'agent' });
 }
 
 export async function verifyToken(token: string): Promise<{ valid: boolean }> {

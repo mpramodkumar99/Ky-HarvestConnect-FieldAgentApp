@@ -487,11 +487,6 @@ function OtpScreen({ phone, onBack }: { phone: string; onBack: () => void }) {
     setLoading(true); setError('');
     try {
       const session = await verifyOtp(phone, finalCode);
-      if (session.userType !== 'agent') {
-        setError('This number is not registered as a Field Agent. Please use the correct app.');
-        setCode(''); inputRef.current?.focus();
-        return;
-      }
       await login(session);
       showToast('Welcome to FoxTail! 🦊', 'success');
     } catch (err) {
