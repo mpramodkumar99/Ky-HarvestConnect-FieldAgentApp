@@ -82,7 +82,7 @@ async function request<T>(url: string, init?: RequestInit, token?: string): Prom
 }
 
 export async function createAgent(input: CreateAgentInput): Promise<void> {
-  await request<void>(`${AUTH_URL}/v1/users`, {
+  await request<void>(`${BASE_URL}/v1/users`, {
     method: 'POST',
     body:   JSON.stringify({ ...input, type: 'agent' }),
   });
