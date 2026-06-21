@@ -23,7 +23,9 @@ async function post<T>(path: string, body: unknown): Promise<T> {
 
 export function normalizePhone(raw: string): string {
   const digits = raw.replace(/\D/g, '');
-  return digits.startsWith('91') && digits.length === 12 ? digits.slice(2) : digits;
+  if (digits.length === 10) return `+91${digits}`;
+  if (digits.length === 12 && digits.startsWith('91')) return `+${digits}`;
+  return `+${digits}`;
 }
 
 export async function requestOtp(phone: string): Promise<void> {

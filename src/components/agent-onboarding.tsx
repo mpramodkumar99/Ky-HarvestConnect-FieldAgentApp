@@ -306,7 +306,7 @@ function Step1Profile({ initial, onNext }: { initial: ProfileData; onNext: (d: P
       </View>
 
       <View style={s.stepFooter}>
-        <Pressable style={[s.nextBtn, !canNext && s.nextBtnDisabled]} onPress={() => canNext && onNext(data)} disabled={!canNext}>
+        <Pressable style={[s.nextBtn, !canNext && s.nextBtnDisabled, { flex: 1 }]} onPress={() => canNext && onNext(data)} disabled={!canNext}>
           <Text style={s.nextBtnTxt}>Next — Bank Account</Text>
           <View style={s.nextArrow} />
         </Pressable>
