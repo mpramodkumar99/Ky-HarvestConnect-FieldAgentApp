@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   View, Text, TextInput, Pressable, StyleSheet,
   ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform,
@@ -186,6 +186,11 @@ function Step1Profile({ initial, onNext }: { initial: ProfileData; onNext: (d: P
   const [locLoading,  setLocLoading]  = useState(false);
   const [sugLoading,  setSugLoading]  = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!data.location) handleUseCurrentLocation();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const canNext = data.name.trim().length >= 2 && data.vehicleType !== '';
 
