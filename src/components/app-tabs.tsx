@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useEffect } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useDelivery } from '@/context/delivery-context';
 import { useLanguage } from '@/context/language-context';
+import { useTabNav, type TabId } from '@/context/tab-context';
+import { addNotificationTapListener } from '@/utils/notifications';
 import DashboardScreen   from '@/app/dashboard';
 import DeliveriesScreen  from '@/app/deliveries';
 import StoresScreen      from '@/app/stores';
@@ -11,8 +13,6 @@ import ReportsScreen     from '@/app/reports';
 import ProfileScreen     from '@/app/profile';
 
 const PRIMARY = '#2E7D32';
-
-type TabId = 'dashboard' | 'deliveries' | 'stores' | 'reports' | 'profile';
 
 const SCREENS: Record<TabId, React.ComponentType> = {
   dashboard:  DashboardScreen,
@@ -27,8 +27,15 @@ export default function AppTabs() {
   const insets = useSafeAreaInsets();
   const { pendingOrders } = useDelivery();
   const { t }  = useLanguage();
+  const { activeTab: active, setActiveTab: setActive } = useTabNav();
 
-  const [active, setActive] = useState<TabId>('dashboard');
+  // Navigate to deliveries when a notification is tapped
+  useEffect(() => {
+    return addNotificationTapListener(data => {
+      if (data?.screen === 'deliveries') setActive('deliveries');
+    });
+  }, [setActive]);
+
   const Screen = SCREENS[active];
 
   const TABS: { id: TabId; icon: string; label: () => string; badge?: number }[] = [
