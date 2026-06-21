@@ -47,6 +47,7 @@ export interface UpdateAgentProfileInput {
   email?:         string;
   vehicleType?:   string;
   vehicleNumber?: string;
+  zone?:          string;
 }
 
 export interface AgentBankInput {
