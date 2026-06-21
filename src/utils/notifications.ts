@@ -1,35 +1,48 @@
-import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
-// expo-notifications remote push was removed from Expo Go in SDK 53.
-// All calls are wrapped in try-catch so the app works in Expo Go (silent no-ops)
-// and notifications work as expected in a development build.
-try {
-  Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowAlert: true,
-      shouldPlaySound: true,
-      shouldSetBadge: false,
-      shouldShowBanner: true,
-      shouldShowList: true,
-    }),
-  });
-} catch {}
+// expo-notifications throws at module init in Expo Go (SDK 53+).
+// Static `import` runs before any try-catch, so we use lazy require() instead.
+type NotificationsModule = typeof import('expo-notifications');
+
+let _mod: NotificationsModule | null = null;
+let _ready = false;
+
+function getModule(): NotificationsModule | null {
+  if (_ready) return _mod;
+  _ready = true;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    _mod = require('expo-notifications') as NotificationsModule;
+    _mod.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+        shouldShowBanner: true,
+        shouldShowList: true,
+      }),
+    });
+  } catch {
+    _mod = null; // Expo Go — silently disable
+  }
+  return _mod;
+}
 
 export async function registerForPushNotificationsAsync(): Promise<void> {
+  const n = getModule();
+  if (!n) return;
   try {
-    const { status: existing } = await Notifications.getPermissionsAsync();
-    let finalStatus = existing;
+    const { status: existing } = await n.getPermissionsAsync();
+    let final = existing;
     if (existing !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
+      const { status } = await n.requestPermissionsAsync();
+      final = status;
     }
-    if (finalStatus !== 'granted') return;
-
+    if (final !== 'granted') return;
     if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync('orders', {
+      await n.setNotificationChannelAsync('orders', {
         name: 'New Orders',
-        importance: Notifications.AndroidImportance.MAX,
+        importance: n.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
         lightColor: '#2E7D32',
       });
@@ -42,8 +55,10 @@ export async function fireLocalNotification(
   body: string,
   data?: Record<string, unknown>,
 ): Promise<void> {
+  const n = getModule();
+  if (!n) return;
   try {
-    await Notifications.scheduleNotificationAsync({
+    await n.scheduleNotificationAsync({
       content: { title, body, data: data ?? {}, sound: true },
       trigger: null,
     });
@@ -53,8 +68,10 @@ export async function fireLocalNotification(
 export function addNotificationTapListener(
   callback: (data: Record<string, unknown>) => void,
 ): () => void {
+  const n = getModule();
+  if (!n) return () => {};
   try {
-    const sub = Notifications.addNotificationResponseReceivedListener(response => {
+    const sub = n.addNotificationResponseReceivedListener(response => {
       callback(response.notification.request.content.data as Record<string, unknown>);
     });
     return () => sub.remove();
