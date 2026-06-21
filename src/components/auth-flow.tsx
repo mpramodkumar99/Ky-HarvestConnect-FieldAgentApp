@@ -530,7 +530,7 @@ function OtpScreen({ phone, onBack }: { phone: string; onBack: () => void }) {
             <Text style={ot.title}>Verify your{'\n'}number</Text>
             <Text style={ot.sub}>Enter the 6-digit OTP sent to{'\n'}<Text style={ot.phone}>+91 {phone}</Text></Text>
 
-            <TextInput ref={inputRef} value={code} onChangeText={handleCodeChange} keyboardType="number-pad" maxLength={6} autoFocus style={ot.hiddenInput} caretHidden />
+            <TextInput ref={inputRef} value={code} onChangeText={handleCodeChange} keyboardType="number-pad" maxLength={6} autoFocus textContentType="oneTimeCode" style={ot.hiddenInput} caretHidden />
             <Pressable style={ot.boxRow} onPress={() => inputRef.current?.focus()}>
               {Array.from({ length: 6 }).map((_, i) => {
                 const filled = i < code.length;
