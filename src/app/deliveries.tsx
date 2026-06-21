@@ -57,7 +57,7 @@ function DeliveryCard({
             <Text style={s.routeSub}>{order.sellerLocation}</Text>
           </View>
         </View>
-        <View style={s.arrow}><Text style={{ color: c.textFaint }}>→</Text></View>
+        <View style={s.arrow}><View style={s.arrowTriangle} /></View>
         <View style={s.routeBlock}>
           <View style={[s.dot, { backgroundColor: PRIMARY }]} />
           <View style={{ flex: 1 }}>
@@ -122,7 +122,8 @@ function cardStyles(c: AppColors) {
     routeRole:   { fontSize: 10, fontWeight: '600', color: c.textMuted, textTransform: 'uppercase' },
     routeName:   { fontSize: 12, fontWeight: '700', color: c.text },
     routeSub:    { fontSize: 11, color: c.textMuted },
-    arrow:       { paddingHorizontal: 4, paddingTop: 8 },
+    arrow:         { paddingHorizontal: 6, paddingTop: 8, alignItems: 'center', justifyContent: 'center' },
+    arrowTriangle: { width: 0, height: 0, borderTopWidth: 5, borderBottomWidth: 5, borderLeftWidth: 8, borderStyle: 'solid', borderTopColor: 'transparent', borderBottomColor: 'transparent', borderLeftColor: c.borderMid },
     meta:        { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, borderTopWidth: 1, borderTopColor: c.borderLight, marginBottom: 10 },
     metaItem:    { fontSize: 12, color: c.textMuted },
     metaDot:     { fontSize: 10, color: c.textFaint },

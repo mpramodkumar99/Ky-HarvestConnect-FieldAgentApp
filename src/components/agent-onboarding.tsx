@@ -463,8 +463,8 @@ function Step2Bank({ initial, onNext, onBack, saving }: { initial: BankData; onN
       </View>
 
       <View style={s.stepFooter}>
-        <Pressable style={s.backBtn} onPress={onBack} disabled={saving}>
-          <Text style={s.backBtnTxt}>← Back</Text>
+        <Pressable style={s.back} onPress={onBack} disabled={saving}>
+          <View style={s.backChevron} /><Text style={s.backTxt}>Back</Text>
         </Pressable>
         <Pressable style={[s.nextBtn, (!canNext || saving) && s.nextBtnDisabled, { flex: 1 }]} onPress={() => canNext && onNext(data)} disabled={!canNext || saving}>
           {saving
@@ -573,8 +573,8 @@ function Step3Kyc({ initial, onSubmit, onBack, saving }: { initial: KycData; onS
       </View>
 
       <View style={s.stepFooter}>
-        <Pressable style={s.backBtn} onPress={onBack} disabled={saving}>
-          <Text style={s.backBtnTxt}>← Back</Text>
+        <Pressable style={s.back} onPress={onBack} disabled={saving}>
+          <View style={s.backChevron} /><Text style={s.backTxt}>Back</Text>
         </Pressable>
         <Pressable style={[s.nextBtn, !canSubmit && s.nextBtnDisabled, { flex: 1, backgroundColor: ACCENT }]} onPress={() => canSubmit && onSubmit(data)} disabled={!canSubmit}>
           {saving
@@ -751,9 +751,10 @@ function makeStyles(_c: AppColors) {
     kycNoteTxt: { fontSize: 12, color: '#374151', lineHeight: 18 },
 
     // ── Footer actions
-    stepFooter:      { flexDirection: 'row', gap: 10, paddingTop: 8 },
-    backBtn:         { paddingHorizontal: 20, paddingVertical: 15, borderRadius: 12, borderWidth: 1.5, borderColor: '#d1d5db', alignItems: 'center', justifyContent: 'center', backgroundColor: '#ffffff' },
-    backBtnTxt:      { fontSize: 14, fontWeight: '600', color: '#374151' },
+    stepFooter:  { flexDirection: 'row', alignItems: 'center', gap: 14, paddingTop: 8 },
+    back:        { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 15, paddingRight: 4 },
+    backChevron: { width: 0, height: 0, borderTopWidth: 5, borderBottomWidth: 5, borderRightWidth: 8, borderStyle: 'solid', borderTopColor: 'transparent', borderBottomColor: 'transparent', borderRightColor: PRIMARY },
+    backTxt:     { fontSize: 14, fontWeight: '600', color: PRIMARY },
     nextBtn:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, backgroundColor: PRIMARY, borderRadius: 14, paddingVertical: 15 },
     nextBtnDisabled: { opacity: 0.4 },
     nextBtnTxt:      { fontSize: 14, fontWeight: '800', color: '#fff' },
