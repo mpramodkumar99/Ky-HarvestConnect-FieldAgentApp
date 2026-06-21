@@ -1,5 +1,6 @@
 import AppGate from '@/components/app-gate';
 import { AuthProvider } from '@/context/auth-context';
+import { AgentProfileProvider } from '@/context/agent-profile-context';
 import { DeliveryProvider } from '@/context/delivery-context';
 import { LanguageProvider } from '@/context/language-context';
 import { ThemePreferenceProvider } from '@/context/theme-context';
@@ -10,11 +11,13 @@ export default function RootLayout() {
     <ThemePreferenceProvider>
       <LanguageProvider>
         <AuthProvider>
-          <DeliveryProvider>
-            <ToastProvider>
-              <AppGate />
-            </ToastProvider>
-          </DeliveryProvider>
+          <AgentProfileProvider>
+            <DeliveryProvider>
+              <ToastProvider>
+                <AppGate />
+              </ToastProvider>
+            </DeliveryProvider>
+          </AgentProfileProvider>
         </AuthProvider>
       </LanguageProvider>
     </ThemePreferenceProvider>

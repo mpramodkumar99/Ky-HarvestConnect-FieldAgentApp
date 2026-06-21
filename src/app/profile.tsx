@@ -1,7 +1,8 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppColors, type AppColors } from '@/hooks/use-app-colors';
 import { useAuth } from '@/context/auth-context';
+import { useAgentProfile } from '@/context/agent-profile-context';
 import { useLanguage } from '@/context/language-context';
 import { useThemePreference } from '@/context/theme-context';
 import { useToast } from '@/components/toast-provider';
@@ -15,10 +16,11 @@ const PEACOCK = '#006D77';
 export default function ProfileScreen() {
   const c = useAppColors();
   const s = makeStyles(c);
-  const { session, logout }       = useAuth();
-  const { t, language, setLanguage } = useLanguage();
-  const { preference, setPreference } = useThemePreference();
-  const { showConfirm }           = useToast();
+  const { session, logout }             = useAuth();
+  const { agentId, agentName: ctxName, zone, rating, status, statusLoading, toggleStatus } = useAgentProfile();
+  const { t, language, setLanguage }    = useLanguage();
+  const { preference, setPreference }   = useThemePreference();
+  const { showConfirm }                 = useToast();
   const { completedToday, pendingOrders } = useDelivery();
 
   function handleLogout() {
@@ -31,7 +33,7 @@ export default function ProfileScreen() {
     });
   }
 
-  const agentName = `Agent ${session?.userId?.slice(-5).toUpperCase() ?? '—'}`;
+  const agentName = ctxName || `Agent ${session?.userId?.slice(-5).toUpperCase() ?? '—'}`;
 
   return (
     <View style={s.screen}>
@@ -43,12 +45,19 @@ export default function ProfileScreen() {
           </View>
           <View style={{ flex: 1 }}>
             <Text style={s.agentName}>{agentName}</Text>
-            <Text style={s.agentId}>ID: {session?.userId ?? '—'}</Text>
+            <Text style={s.agentId}>ID: {agentId !== '—' ? agentId : (session?.userId ?? '—')}</Text>
           </View>
-          <View style={s.statusPill}>
-            <View style={s.statusGreen} />
-            <Text style={s.statusTxt}>{t('prof_available')}</Text>
-          </View>
+          <Pressable
+            style={s.statusPill}
+            onPress={toggleStatus}
+            disabled={statusLoading || status === 'on_delivery'}>
+            {statusLoading
+              ? <ActivityIndicator size="small" color="#fff" style={{ width: 7 }} />
+              : <View style={status === 'available' ? s.statusGreen : status === 'offline' ? s.statusGray : s.statusAmber} />}
+            <Text style={s.statusTxt}>
+              {status === 'available' ? t('prof_available') : status === 'offline' ? 'Offline' : 'Delivering'}
+            </Text>
+          </Pressable>
         </View>
       </SafeAreaView>
 
@@ -65,7 +74,7 @@ export default function ProfileScreen() {
             <Text style={s.statLbl}>Pending</Text>
           </View>
           <View style={[s.stat, { backgroundColor: PEACOCK + '15', borderColor: PEACOCK + '40' }]}>
-            <Text style={[s.statNum, { color: PEACOCK }]}>4.8 ⭐</Text>
+            <Text style={[s.statNum, { color: PEACOCK }]}>{rating.toFixed(1)} ⭐</Text>
             <Text style={s.statLbl}>{t('prof_rating')}</Text>
           </View>
         </View>
@@ -76,7 +85,7 @@ export default function ProfileScreen() {
             <Text style={s.cardIcon}>📍</Text>
             <View style={{ flex: 1 }}>
               <Text style={s.cardLabel}>{t('prof_zone')}</Text>
-              <Text style={s.cardVal}>Nizamabad District</Text>
+              <Text style={s.cardVal}>{zone || 'Not set'}</Text>
             </View>
           </View>
           <View style={[s.cardRow, { borderTopWidth: 1, borderTopColor: c.borderLight, marginTop: 8, paddingTop: 8 }]}>
@@ -162,8 +171,10 @@ function makeStyles(c: AppColors) {
     avatarIcon: { fontSize: 34 },
     agentName:  { fontSize: 18, fontWeight: '800', color: '#fff' },
     agentId:    { fontSize: 11, color: 'rgba(255,255,255,0.65)', marginTop: 2 },
-    statusPill: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 5 },
+    statusPill:  { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 5 },
     statusGreen: { width: 7, height: 7, borderRadius: 4, backgroundColor: '#86efac' },
+    statusGray:  { width: 7, height: 7, borderRadius: 4, backgroundColor: '#9ca3af' },
+    statusAmber: { width: 7, height: 7, borderRadius: 4, backgroundColor: '#fbbf24' },
     statusTxt:   { fontSize: 11, fontWeight: '600', color: '#fff' },
 
     body: { padding: 16, gap: 14, paddingBottom: 40 },

@@ -5,6 +5,7 @@ import * as Location from 'expo-location';
 import { useAppColors, type AppColors } from '@/hooks/use-app-colors';
 import { useDelivery } from '@/context/delivery-context';
 import { useAuth } from '@/context/auth-context';
+import { useAgentProfile } from '@/context/agent-profile-context';
 import { useLanguage } from '@/context/language-context';
 import { RouteMapModal } from '@/components/route-map-modal';
 
@@ -28,6 +29,7 @@ export default function DashboardScreen() {
   const s = makeStyles(c);
   const { session } = useAuth();
   const { t }       = useLanguage();
+  const { agentId, status, statusLoading, toggleStatus } = useAgentProfile();
   const { pendingOrders, activeDelivery, completedToday, loading, refresh, markDelivered } = useDelivery();
 
   const [routeOpen,  setRouteOpen]  = useState(false);
@@ -57,12 +59,19 @@ export default function DashboardScreen() {
         <View style={s.header}>
           <View>
             <Text style={s.greeting}>{greetingText()}, Agent 🦊</Text>
-            <Text style={s.agentId}>ID: {session?.userId?.slice(-8).toUpperCase() ?? '—'}</Text>
+            <Text style={s.agentId}>ID: {agentId !== '—' ? agentId : (session?.userId?.slice(-8).toUpperCase() ?? '—')}</Text>
           </View>
-          <View style={s.statusDot}>
-            <View style={s.dotGreen} />
-            <Text style={s.statusTxt}>Available</Text>
-          </View>
+          <Pressable
+            style={s.statusDot}
+            onPress={toggleStatus}
+            disabled={statusLoading || status === 'on_delivery'}>
+            {statusLoading
+              ? <ActivityIndicator size="small" color="#fff" style={{ width: 8 }} />
+              : <View style={status === 'available' ? s.dotGreen : status === 'offline' ? s.dotGray : s.dotAmber} />}
+            <Text style={s.statusTxt}>
+              {status === 'available' ? 'Available' : status === 'offline' ? 'Offline' : 'Delivering'}
+            </Text>
+          </Pressable>
         </View>
       </SafeAreaView>
 
@@ -198,6 +207,8 @@ function makeStyles(c: AppColors) {
     agentId:   { fontSize: 11, color: 'rgba(255,255,255,0.7)', marginTop: 2 },
     statusDot: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4 },
     dotGreen:  { width: 8, height: 8, borderRadius: 4, backgroundColor: '#86efac' },
+    dotGray:   { width: 8, height: 8, borderRadius: 4, backgroundColor: '#9ca3af' },
+    dotAmber:  { width: 8, height: 8, borderRadius: 4, backgroundColor: '#fbbf24' },
     statusTxt: { fontSize: 12, fontWeight: '600', color: '#fff' },
 
     body: { padding: 16, gap: 0, paddingBottom: 32 },
